@@ -1,5 +1,5 @@
 """
-PASO 3: Preparar los datos grabados para entrenamiento
+PASO 2: Preparar los datos grabados para entrenamiento
 ------------------------------------------------------------
 Este script:
   1. Lee todas las carpetas dentro de dataset/ (cada carpeta = una sena)

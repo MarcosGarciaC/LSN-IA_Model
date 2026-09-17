@@ -1,5 +1,5 @@
 """
-PASO 1 (version actualizada): Captura de landmarks con la nueva API de MediaPipe Tasks
+PASO 0 (version actualizada): Captura de landmarks con la nueva API de MediaPipe Tasks
 ----------------------------------------------------------------------------------------
 MediaPipe elimino el modulo viejo "mp.solutions" (incluyendo Holistic) en sus
 versiones recientes. Ahora hay que usar tres detectores separados: manos, cara

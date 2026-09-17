@@ -1,5 +1,5 @@
 """
-PASO 5: Reconocimiento en tiempo real + salida de audio
+PASO 4: Reconocimiento en tiempo real + salida de audio
 ------------------------------------------------------------
 Este es el ultimo bloque: conecta todo lo que ya construiste.
 
@@ -34,11 +34,17 @@ from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision as mp_vision
 import pyttsx3
 
-ARCHIVO_MODELO = "modelo_senas.pt"
+ARCHIVO_MODELO = "modelo_señas.pt"
 FRAMES_POR_SECUENCIA = 30
 UMBRAL_CONFIANZA = 0.75       # solo acepta predicciones con esta seguridad o mas
 SEGUNDOS_ENTRE_PREDICCIONES = 1.0  # no prediga en cada frame, para no saturar
 SEGUNDOS_ANTES_DE_REPETIR = 3.0    # evita decir la misma sena en bucle
+
+# Etiquetas que el modelo puede reconocer pero que NUNCA deben decirse en voz
+# alta (ej: la clase de "reposo" que representa "no se esta haciendo ninguna
+# sena"). Se muestran en pantalla igual, para que puedas ver que el modelo
+# las esta detectando correctamente, pero se omiten del audio.
+ETIQUETAS_SILENCIOSAS = {"reposo", "nada"}
 
 MODELOS_MEDIAPIPE = {
     "hand_landmarker.task": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
@@ -51,7 +57,7 @@ N_LANDMARKS_CARA = 478
 N_LANDMARKS_POSE = 33
 
 
-# --- Misma arquitectura de modelo usada en el entrenamiento (debe coincidir) ---
+# --- Misma arquitectura de modelo usada en el entrenamiento  ---
 class ModeloLSTM(nn.Module):
     def __init__(self, num_features, num_clases, tamano_oculto=128):
         super().__init__()
@@ -76,7 +82,7 @@ class ModeloLSTM(nn.Module):
 
 
 # --- Motor de texto a voz corriendo en un hilo aparte, para no congelar el video ---
-cola_audio = queue.Queue()
+audio = queue.Queue()
 
 def hilo_audio():
     # Nota: se crea un motor NUEVO cada vez que se habla, en vez de reutilizar
@@ -84,7 +90,7 @@ def hilo_audio():
     # motor deja de responder despues de la primera llamada a runAndWait()
     # si se reutiliza el mismo objeto repetidamente.
     while True:
-        texto = cola_audio.get()
+        texto = audio.get()
         if texto is None:
             break
         motor = pyttsx3.init()
@@ -95,7 +101,7 @@ def hilo_audio():
         del motor
 
 def decir(texto):
-    cola_audio.put(texto)
+    audio.put(texto)
 
 
 def descargar_modelos_si_faltan():
@@ -250,16 +256,23 @@ def main():
 
             if confianza >= UMBRAL_CONFIANZA:
                 sena_predicha = indice_a_sena[indice_predicho]
-                texto_en_pantalla = f"{sena_predicha} ({confianza*100:.0f}%)"
 
-                # Evitar repetir la misma sena en bucle muy seguido
-                es_sena_distinta = sena_predicha != ultima_sena_dicha
-                paso_tiempo_suficiente = (ahora - ultima_sena_tiempo) >= SEGUNDOS_ANTES_DE_REPETIR
+                if sena_predicha in ETIQUETAS_SILENCIOSAS:
+                    # Se reconoce y se muestra en pantalla, pero nunca se dice
+                    # en voz alta (ej: "reposo" = no se esta haciendo ninguna sena)
+                    texto_en_pantalla = f"{sena_predicha} ({confianza*100:.0f}%) [silenciado]"
+                    ultima_sena_dicha = None  # permite que la siguiente sena real se diga de inmediato
+                else:
+                    texto_en_pantalla = f"{sena_predicha} ({confianza*100:.0f}%)"
 
-                if es_sena_distinta or paso_tiempo_suficiente:
-                    decir(sena_predicha)
-                    ultima_sena_dicha = sena_predicha
-                    ultima_sena_tiempo = ahora
+                    # Evitar repetir la misma sena en bucle muy seguido
+                    es_sena_distinta = sena_predicha != ultima_sena_dicha
+                    paso_tiempo_suficiente = (ahora - ultima_sena_tiempo) >= SEGUNDOS_ANTES_DE_REPETIR
+
+                    if es_sena_distinta or paso_tiempo_suficiente:
+                        decir(sena_predicha)
+                        ultima_sena_dicha = sena_predicha
+                        ultima_sena_tiempo = ahora
             else:
                 texto_en_pantalla = f"(sin reconocer, {confianza*100:.0f}%)"
 
@@ -272,7 +285,7 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    cola_audio.put(None)  # senal para cerrar el hilo de audio
+    audio.put(None)  # senal para cerrar el hilo de audio
     cap.release()
     cv2.destroyAllWindows()
 

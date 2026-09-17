@@ -1,8 +1,8 @@
 """
-PASO 2 (version mejorada): Grabacion de dataset con menu de navegacion
+PASO 1 (version mejorada): Grabacion de dataset con menu de navegacion
 --------------------------------------------------------------------------
 Mejoras sobre la version anterior:
-  1. Menu por numero: escribes el numero de la sena que quieres grabar,
+  1. Menu por numero: escribes el numero de la seña que quieres grabar,
      en vez de ir presionando 'n' una por una. Util cuando tienes muchas
      SEÑAS (10, 40, 100...).
   2. Vista en vivo con landmarks dibujados (manos, cara, pose) ANTES y
@@ -12,10 +12,10 @@ Mejoras sobre la version anterior:
 Flujo:
   1. Se muestra un menu en la terminal con todas las SEÑAS y cuantas
      repeticiones llevas de cada una.
-  2. Escribes el numero de la sena que quieres grabar y presionas Enter.
+  2. Escribes el numero de la seña que quieres grabar y presionas Enter.
   3. Se abre la camara mostrando los landmarks en vivo.
   4. Presiona ESPACIO para grabar una repeticion (cuenta regresiva + 30 frames).
-  5. Presiona ESC para volver al menu y elegir otra sena.
+  5. Presiona ESC para volver al menu y elegir otra seña.
   6. Escribe 'q' en el menu para salir del programa.
 """
 
@@ -34,7 +34,7 @@ from mediapipe.tasks.python import vision as mp_vision
 # ============================================================
 SEÑAS = [
     "hola", "gracias", "por_favor", "adios", "buenos_dias",
-    "J",  # ejemplo de sena dinamica
+    "J", "nada", "reposo" # ejemplo de seña dinamica
     # agrega mas aqui, ej: "familia", "casa", "agua", ...
 ]
 
@@ -149,31 +149,31 @@ def dibujar_deteccion_en_frame(frame, r_manos, r_cara, r_pose):
     return hay_mano_izq, hay_mano_der, hay_cara, hay_pose
 
 
-def contar_repeticiones_existentes(carpeta_sena):
-    if not os.path.exists(carpeta_sena):
+def contar_repeticiones_existentes(carpeta_seña):
+    if not os.path.exists(carpeta_seña):
         return 0
-    return len([f for f in os.listdir(carpeta_sena) if f.endswith(".npy")])
+    return len([f for f in os.listdir(carpeta_seña) if f.endswith(".npy")])
 
 
 def mostrar_menu():
     print("\n" + "=" * 55)
     print("  MENU DE SEÑAS - escribe el numero y presiona Enter")
     print("=" * 55)
-    for i, sena in enumerate(SEÑAS):
-        carpeta_sena = os.path.join(CARPETA_DATASET, sena)
-        n = contar_repeticiones_existentes(carpeta_sena)
+    for i, seña in enumerate(SEÑAS):
+        carpeta_seña = os.path.join(CARPETA_DATASET, seña)
+        n = contar_repeticiones_existentes(carpeta_seña)
         marca = "OK" if n >= REPETICIONES_OBJETIVO else "  "
-        print(f"  [{marca}] {i+1:2d}. {sena:20s} ({n}/{REPETICIONES_OBJETIVO})")
+        print(f"  [{marca}] {i+1:2d}. {seña:20s} ({n}/{REPETICIONES_OBJETIVO})")
     print("=" * 55)
-    print("  Escribe un numero para grabar esa sena, o 'q' para salir")
+    print("  Escribe un numero para grabar esa seña, o 'q' para salir")
 
 
 def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector):
-    sena_actual = SEÑAS[indice_sena]
-    carpeta_sena = os.path.join(CARPETA_DATASET, sena_actual)
-    os.makedirs(carpeta_sena, exist_ok=True)
+    seña_actual = SEÑAS[indice_sena]
+    carpeta_seña = os.path.join(CARPETA_DATASET, seña_actual)
+    os.makedirs(carpeta_seña, exist_ok=True)
 
-    print(f"\nGrabando '{sena_actual}'. ESPACIO = grabar repeticion | ESC = volver al menu")
+    print(f"\nGrabando '{seña_actual}'. ESPACIO = grabar repeticion | ESC = volver al menu")
 
     while True:
         ret, frame = cap.read()
@@ -184,8 +184,8 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
         r_manos, r_cara, r_pose = detectar_todo(frame, hand_detector, face_detector, pose_detector)
         hay_izq, hay_der, hay_cara, hay_pose = dibujar_deteccion_en_frame(frame, r_manos, r_cara, r_pose)
 
-        num_reps = contar_repeticiones_existentes(carpeta_sena)
-        cv2.putText(frame, f"Sena: {sena_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
+        num_reps = contar_repeticiones_existentes(carpeta_seña)
+        cv2.putText(frame, f"Sena: {seña_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
                     (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         cv2.putText(frame, f"Cara:{'SI' if hay_cara else 'NO'} Pose:{'SI' if hay_pose else 'NO'} "
                             f"ManoI:{'SI' if hay_izq else 'NO'} ManoD:{'SI' if hay_der else 'NO'}",
@@ -231,8 +231,8 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
                 cv2.waitKey(1)
 
             secuencia = np.array(secuencia)
-            num_reps = contar_repeticiones_existentes(carpeta_sena)
-            nombre_archivo = os.path.join(carpeta_sena, f"rep_{num_reps:03d}.npy")
+            num_reps = contar_repeticiones_existentes(carpeta_seña)
+            nombre_archivo = os.path.join(carpeta_seña, f"rep_{num_reps:03d}.npy")
             np.save(nombre_archivo, secuencia)
             print(f"  Guardado: {nombre_archivo}  shape={secuencia.shape}")
 

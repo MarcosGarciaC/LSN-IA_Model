@@ -1,5 +1,5 @@
 """
-PASO 4: Entrenar el modelo LSTM
+PASO 3: Entrenar el modelo LSTM
 ------------------------------------------------------------
 Este script:
   1. Carga los datos ya preparados (datos_preparados.npz)
@@ -23,7 +23,7 @@ from torch.utils.data import Dataset, DataLoader
 
 ARCHIVO_DATOS = "datos_preparados.npz"
 ARCHIVO_ETIQUETAS = "etiquetas.json"
-ARCHIVO_MODELO = "modelo_senas.pt"
+ARCHIVO_MODELO = "modelo_señas.pt"
 
 EPOCAS = 100
 TASA_APRENDIZAJE = 0.001
