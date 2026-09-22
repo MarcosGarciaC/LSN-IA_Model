@@ -1,14 +1,6 @@
 """
-PASO 1 (version mejorada): Grabacion de dataset con menu de navegacion
+PASO 1 : Grabacion de dataset con menu de navegacion
 --------------------------------------------------------------------------
-Mejoras sobre la version anterior:
-  1. Menu por numero: escribes el numero de la seña que quieres grabar,
-     en vez de ir presionando 'n' una por una. Util cuando tienes muchas
-     SEÑAS (10, 40, 100...).
-  2. Vista en vivo con landmarks dibujados (manos, cara, pose) ANTES y
-     DURANTE la grabacion, para confirmar visualmente que la camara si
-     esta detectando todo correctamente antes de grabar cada repeticion.
-
 Flujo:
   1. Se muestra un menu en la terminal con todas las SEÑAS y cuantas
      repeticiones llevas de cada una.
@@ -17,6 +9,11 @@ Flujo:
   4. Presiona ESPACIO para grabar una repeticion (cuenta regresiva + 30 frames).
   5. Presiona ESC para volver al menu y elegir otra seña.
   6. Escribe 'q' en el menu para salir del programa.
+  comando para activar el entorno venv\\Scripts\\activate
+
+  CAMBIO: ahora usa RunningMode.VIDEO en vez de IMAGE, para que el detector
+  tenga memoria entre frames (tracking). Esto ayuda cuando las manos se
+  superponen momentaneamente, como en senas donde se juntan (ej: por_favor).
 """
 
 import os
@@ -34,8 +31,8 @@ from mediapipe.tasks.python import vision as mp_vision
 # ============================================================
 SEÑAS = [
     "hola", "gracias", "por_favor", "adios", "buenos_dias",
-    "J", "nada", "reposo" # ejemplo de seña dinamica
-    # agrega mas aqui, ej: "familia", "casa", "agua", ...
+    "J", "nada", "reposo"  # ejemplo de seña dinamica + clases neutrales
+    # aca se deben agregar mas señas que es la parte mas larga del proyecto
 ]
 
 CARPETA_DATASET = "dataset"
@@ -63,31 +60,36 @@ def descargar_modelos_si_faltan():
 def crear_detectores():
     base_hand = mp_python.BaseOptions(model_asset_path="hand_landmarker.task")
     opciones_hand = mp_vision.HandLandmarkerOptions(
-        base_options=base_hand, num_hands=2, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_hand,
+        num_hands=2,
+        running_mode=mp_vision.RunningMode.VIDEO,
+        min_hand_detection_confidence=0.3,
+        min_hand_presence_confidence=0.3,
+        min_tracking_confidence=0.3,
     )
     hand_detector = mp_vision.HandLandmarker.create_from_options(opciones_hand)
 
     base_face = mp_python.BaseOptions(model_asset_path="face_landmarker.task")
     opciones_face = mp_vision.FaceLandmarkerOptions(
-        base_options=base_face, num_faces=1, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_face, num_faces=1, running_mode=mp_vision.RunningMode.VIDEO,
     )
     face_detector = mp_vision.FaceLandmarker.create_from_options(opciones_face)
 
     base_pose = mp_python.BaseOptions(model_asset_path="pose_landmarker_lite.task")
     opciones_pose = mp_vision.PoseLandmarkerOptions(
-        base_options=base_pose, num_poses=1, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_pose, num_poses=1, running_mode=mp_vision.RunningMode.VIDEO,
     )
     pose_detector = mp_vision.PoseLandmarker.create_from_options(opciones_pose)
 
     return hand_detector, face_detector, pose_detector
 
 
-def detectar_todo(frame_bgr, hand_detector, face_detector, pose_detector):
+def detectar_todo(frame_bgr, hand_detector, face_detector, pose_detector, timestamp_ms):
     frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
-    r_manos = hand_detector.detect(mp_image)
-    r_cara = face_detector.detect(mp_image)
-    r_pose = pose_detector.detect(mp_image)
+    r_manos = hand_detector.detect_for_video(mp_image, timestamp_ms)
+    r_cara = face_detector.detect_for_video(mp_image, timestamp_ms)
+    r_pose = pose_detector.detect_for_video(mp_image, timestamp_ms)
     return r_manos, r_cara, r_pose
 
 
@@ -168,8 +170,8 @@ def mostrar_menu():
     print("  Escribe un numero para grabar esa seña, o 'q' para salir")
 
 
-def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector):
-    seña_actual = SEÑAS[indice_sena]
+def grabar_SEÑAS(indice_seña, cap, hand_detector, face_detector, pose_detector, timestamp_ms):
+    seña_actual = SEÑAS[indice_seña]
     carpeta_seña = os.path.join(CARPETA_DATASET, seña_actual)
     os.makedirs(carpeta_seña, exist_ok=True)
 
@@ -181,11 +183,12 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
             break
         frame = cv2.flip(frame, 1)
 
-        r_manos, r_cara, r_pose = detectar_todo(frame, hand_detector, face_detector, pose_detector)
+        timestamp_ms += 33
+        r_manos, r_cara, r_pose = detectar_todo(frame, hand_detector, face_detector, pose_detector, timestamp_ms)
         hay_izq, hay_der, hay_cara, hay_pose = dibujar_deteccion_en_frame(frame, r_manos, r_cara, r_pose)
 
         num_reps = contar_repeticiones_existentes(carpeta_seña)
-        cv2.putText(frame, f"Sena: {seña_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
+        cv2.putText(frame, f"Seña: {seña_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
                     (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         cv2.putText(frame, f"Cara:{'SI' if hay_cara else 'NO'} Pose:{'SI' if hay_pose else 'NO'} "
                             f"ManoI:{'SI' if hay_izq else 'NO'} ManoD:{'SI' if hay_der else 'NO'}",
@@ -197,7 +200,7 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
         tecla = cv2.waitKey(1) & 0xFF
 
         if tecla == 27:  # ESC
-            return
+            return timestamp_ms
         elif tecla == ord(" "):
             if not (hay_izq or hay_der):
                 print("  Aviso: no se detecta ninguna mano en este momento, ajusta tu posicion.")
@@ -205,7 +208,8 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
             for segundos in [2, 1]:
                 ret, frame_cd = cap.read()
                 frame_cd = cv2.flip(frame_cd, 1)
-                r_m, r_c, r_p = detectar_todo(frame_cd, hand_detector, face_detector, pose_detector)
+                timestamp_ms += 33
+                r_m, r_c, r_p = detectar_todo(frame_cd, hand_detector, face_detector, pose_detector, timestamp_ms)
                 dibujar_deteccion_en_frame(frame_cd, r_m, r_c, r_p)
                 cv2.putText(frame_cd, f"Preparate... {segundos}", (130, 240),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3)
@@ -214,13 +218,17 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
                 time.sleep(1)
 
             secuencia = []
+            frames_sin_mano = 0
             for _ in range(FRAMES_POR_SECUENCIA):
                 ret, frame_grab = cap.read()
                 if not ret:
                     break
                 frame_grab = cv2.flip(frame_grab, 1)
-                r_m, r_c, r_p = detectar_todo(frame_grab, hand_detector, face_detector, pose_detector)
-                dibujar_deteccion_en_frame(frame_grab, r_m, r_c, r_p)
+                timestamp_ms += 33
+                r_m, r_c, r_p = detectar_todo(frame_grab, hand_detector, face_detector, pose_detector, timestamp_ms)
+                izq, der, _, _ = dibujar_deteccion_en_frame(frame_grab, r_m, r_c, r_p)
+                if not (izq or der):
+                    frames_sin_mano += 1
 
                 vector = landmarks_a_vector(r_m, r_c, r_p)
                 secuencia.append(vector)
@@ -234,7 +242,11 @@ def grabar_SEÑAS(indice_sena, cap, hand_detector, face_detector, pose_detector)
             num_reps = contar_repeticiones_existentes(carpeta_seña)
             nombre_archivo = os.path.join(carpeta_seña, f"rep_{num_reps:03d}.npy")
             np.save(nombre_archivo, secuencia)
-            print(f"  Guardado: {nombre_archivo}  shape={secuencia.shape}")
+
+            aviso_calidad = ""
+            if frames_sin_mano > FRAMES_POR_SECUENCIA * 0.3:
+                aviso_calidad = f"  [AVISO: {frames_sin_mano}/{FRAMES_POR_SECUENCIA} frames sin ninguna mano detectada]"
+            print(f"  Guardado: {nombre_archivo}  shape={secuencia.shape}{aviso_calidad}")
 
 
 def main():
@@ -246,6 +258,8 @@ def main():
     if not cap.isOpened():
         print("ERROR: no se pudo abrir la camara.")
         return
+
+    timestamp_ms = 0
 
     while True:
         mostrar_menu()
@@ -263,7 +277,7 @@ def main():
             print("Numero fuera de rango.")
             continue
 
-        grabar_SEÑAS(indice, cap, hand_detector, face_detector, pose_detector)
+        timestamp_ms = grabar_SEÑAS(indice, cap, hand_detector, face_detector, pose_detector, timestamp_ms)
 
     cap.release()
     cv2.destroyAllWindows()

@@ -16,6 +16,11 @@ Como funciona:
 
 Controles:
   - Presiona 'q' para salir.
+
+CAMBIO: ahora usa RunningMode.VIDEO en vez de IMAGE (igual que
+grabar_dataset.py), para que el detector tenga memoria entre frames.
+Es importante que ambos scripts usen el MISMO modo de deteccion,
+para que lo que el modelo aprendio se parezca a lo que ve en vivo.
 """
 
 import os
@@ -114,32 +119,37 @@ def descargar_modelos_si_faltan():
 def crear_detectores():
     base_hand = mp_python.BaseOptions(model_asset_path="hand_landmarker.task")
     opciones_hand = mp_vision.HandLandmarkerOptions(
-        base_options=base_hand, num_hands=2, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_hand,
+        num_hands=2,
+        running_mode=mp_vision.RunningMode.VIDEO,
+        min_hand_detection_confidence=0.3,
+        min_hand_presence_confidence=0.3,
+        min_tracking_confidence=0.3,
     )
     hand_detector = mp_vision.HandLandmarker.create_from_options(opciones_hand)
 
     base_face = mp_python.BaseOptions(model_asset_path="face_landmarker.task")
     opciones_face = mp_vision.FaceLandmarkerOptions(
-        base_options=base_face, num_faces=1, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_face, num_faces=1, running_mode=mp_vision.RunningMode.VIDEO,
     )
     face_detector = mp_vision.FaceLandmarker.create_from_options(opciones_face)
 
     base_pose = mp_python.BaseOptions(model_asset_path="pose_landmarker_lite.task")
     opciones_pose = mp_vision.PoseLandmarkerOptions(
-        base_options=base_pose, num_poses=1, running_mode=mp_vision.RunningMode.IMAGE,
+        base_options=base_pose, num_poses=1, running_mode=mp_vision.RunningMode.VIDEO,
     )
     pose_detector = mp_vision.PoseLandmarker.create_from_options(opciones_pose)
 
     return hand_detector, face_detector, pose_detector
 
 
-def detectar_todo(frame_bgr, hand_detector, face_detector, pose_detector):
+def detectar_todo(frame_bgr, hand_detector, face_detector, pose_detector, timestamp_ms):
     frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
     return (
-        hand_detector.detect(mp_image),
-        face_detector.detect(mp_image),
-        pose_detector.detect(mp_image),
+        hand_detector.detect_for_video(mp_image, timestamp_ms),
+        face_detector.detect_for_video(mp_image, timestamp_ms),
+        pose_detector.detect_for_video(mp_image, timestamp_ms),
     )
 
 
@@ -214,6 +224,7 @@ def main():
     ultima_sena_dicha = None
     ultima_sena_tiempo = 0
     texto_en_pantalla = "..."
+    timestamp_ms = 0  # contador creciente requerido por RunningMode.VIDEO
 
     print("Reconocimiento iniciado. Presiona 'q' para salir.")
 
@@ -223,7 +234,8 @@ def main():
             break
         frame = cv2.flip(frame, 1)
 
-        r_manos, r_cara, r_pose = detectar_todo(frame, hand_detector, face_detector, pose_detector)
+        timestamp_ms += 33
+        r_manos, r_cara, r_pose = detectar_todo(frame, hand_detector, face_detector, pose_detector, timestamp_ms)
 
         # Dibujar landmarks para ver que se esta detectando
         for mano_landmarks in r_manos.hand_landmarks:

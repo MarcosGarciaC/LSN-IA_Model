@@ -2,14 +2,14 @@
 PASO 2: Preparar los datos grabados para entrenamiento
 ------------------------------------------------------------
 Este script:
-  1. Lee todas las carpetas dentro de dataset/ (cada carpeta = una sena)
+  1. Lee todas las carpetas dentro de dataset/ (cada carpeta = una seña)
   2. Carga todos los archivos .npy (cada uno = una repeticion grabada)
   3. Convierte los nombres de senas (texto) en numeros (esto lo necesita
      la red neuronal, no puede aprender directamente con texto)
   4. Divide todo en dos grupos: ENTRENAMIENTO (80%) y PRUEBA (20%)
   5. Guarda todo en un solo archivo listo para el siguiente paso
 
-No requiere camara ni mediapipe, solo lee los archivos que ya grabaste.
+
 """
 
 import os
@@ -24,7 +24,7 @@ ARCHIVO_ETIQUETAS = "etiquetas.json"
 
 
 def cargar_dataset():
-    """Recorre dataset/<sena>/rep_XXX.npy y arma dos listas: secuencias y etiquetas."""
+    """Recorre dataset/<seña>/rep_XXX.npy y arma dos listas: secuencias y etiquetas."""
     if not os.path.exists(CARPETA_DATASET):
         raise FileNotFoundError(
             f"No existe la carpeta '{CARPETA_DATASET}'. Graba primero con grabar_dataset.py"
@@ -41,21 +41,21 @@ def cargar_dataset():
     secuencias = []
     etiquetas_texto = []
 
-    for sena in senas:
-        carpeta_sena = os.path.join(CARPETA_DATASET, sena)
+    for seña in senas:
+        carpeta_sena = os.path.join(CARPETA_DATASET, seña)
         archivos = sorted([f for f in os.listdir(carpeta_sena) if f.endswith(".npy")])
 
         if len(archivos) == 0:
-            print(f"  Aviso: '{sena}' no tiene ninguna repeticion grabada, se omite.")
+            print(f"  Aviso: '{seña}' no tiene ninguna repeticion grabada, se omite.")
             continue
 
-        print(f"  {sena}: {len(archivos)} repeticiones")
+        print(f"  {seña}: {len(archivos)} repeticiones")
 
         for archivo in archivos:
             ruta = os.path.join(carpeta_sena, archivo)
             secuencia = np.load(ruta)
             secuencias.append(secuencia)
-            etiquetas_texto.append(sena)
+            etiquetas_texto.append(seña)
 
     return secuencias, etiquetas_texto, senas
 
@@ -81,7 +81,7 @@ def main():
     X = np.array(secuencias)  # shape: (num_ejemplos, frames_por_secuencia, num_features)
 
     # Convertir nombres de senas a numeros: {"hola": 0, "gracias": 1, ...}
-    sena_a_indice = {sena: i for i, sena in enumerate(lista_senas)}
+    sena_a_indice = {seña: i for i, seña in enumerate(lista_senas)}
     y = np.array([sena_a_indice[etiqueta] for etiqueta in etiquetas_texto])
 
     print(f"\nForma final de X (datos): {X.shape}")
@@ -89,7 +89,7 @@ def main():
     print(f"Mapeo de senas a numeros: {sena_a_indice}")
 
     # Dividir en entrenamiento (80%) y prueba (20%)
-    # stratify=y asegura que cada sena quede representada proporcionalmente en ambos grupos
+    # stratify=y asegura que cada seña quede representada proporcionalmente en ambos grupos
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
