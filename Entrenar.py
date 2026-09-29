@@ -16,14 +16,17 @@ tener GPU para este tamano de datos).
 
 import json
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from torch.utils.data import Dataset, DataLoader
 
 ARCHIVO_DATOS = "datos_preparados.npz"
 ARCHIVO_ETIQUETAS = "etiquetas.json"
 ARCHIVO_MODELO = "modelo_señas.pt"
+ARCHIVO_MATRIZ = "matriz_confusion.png"
 
 EPOCAS = 100
 TASA_APRENDIZAJE = 0.001
@@ -148,6 +151,30 @@ def main():
 
     print(f"\nEntrenamiento terminado. Mejor precision en prueba: {mejor_precision*100:.1f}%")
     print(f"Modelo guardado en: {ARCHIVO_MODELO}")
+
+    checkpoint = torch.load(ARCHIVO_MODELO, map_location=dispositivo)
+    modelo.load_state_dict(checkpoint["modelo_state_dict"])
+    modelo.eval()
+    predicciones_test = []
+    with torch.no_grad():
+        for lote_X, _ in dl_test:
+            lote_X = lote_X.to(dispositivo)
+            salida = modelo(lote_X)
+            predicciones_test.extend(torch.argmax(salida, dim=1).cpu().numpy())
+
+    matriz = confusion_matrix(y_test, predicciones_test, labels=np.arange(num_clases))
+    nombres_senas = [
+        sena for sena, _ in sorted(sena_a_indice.items(), key=lambda item: item[1])
+    ]
+    figura, eje = plt.subplots(figsize=(max(8, num_clases * 1.2), max(6, num_clases)))
+    ConfusionMatrixDisplay(
+        confusion_matrix=matriz,
+        display_labels=nombres_senas,
+    ).plot(ax=eje, cmap="Blues", values_format="d", xticks_rotation=45)
+    figura.tight_layout()
+    figura.savefig(ARCHIVO_MATRIZ, dpi=150)
+    plt.close(figura)
+    print(f"Matriz de confusion guardada en: {ARCHIVO_MATRIZ}")
 
 
 if __name__ == "__main__":
