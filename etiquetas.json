@@ -1,6 +1,8 @@
 {
   "Gracias": 0,
-  "hola": 1,
-  "nada": 2,
-  "por_favor": 3
+  "cuerpo": 1,
+  "hola": 2,
+  "hombre": 3,
+  "nada": 4,
+  "por_favor": 5
 }
