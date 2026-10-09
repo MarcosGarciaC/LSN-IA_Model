@@ -58,6 +58,7 @@ SEÑAS = [
     "estomago",
     "pierna",
     "pies",
+    "amigo",
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"

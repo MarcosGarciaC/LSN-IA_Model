@@ -1,3 +1,7 @@
 {
-  "adios": 0
+  "adios": 0,
+  "amigo": 1,
+  "gracias": 2,
+  "hola": 3,
+  "pecho": 4
 }
