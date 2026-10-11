@@ -1,8 +1,11 @@
 {
   "adios": 0,
   "amigo": 1,
-  "gracias": 2,
-  "hola": 3,
-  "pecho": 4,
-  "hombre": 1
+  "brazo": 2,
+  "cabello": 3,
+  "gracias": 4,
+  "hola": 5,
+  "hombre": 6,
+  "ojos": 7,
+  "pecho": 8
 }
