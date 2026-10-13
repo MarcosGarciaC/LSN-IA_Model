@@ -1,8 +1,11 @@
 {
   "boca": 0,
-  "cabeza": 1,
-  "hola": 2,
-  "nariz": 3,
-  "oreja": 4,
-  "pecho": 5
+  "brazo": 1,
+  "cabeza": 2,
+  "estomago": 3,
+  "hola": 4,
+  "mano": 5,
+  "nariz": 6,
+  "pecho": 7,
+  "pies": 8
 }
