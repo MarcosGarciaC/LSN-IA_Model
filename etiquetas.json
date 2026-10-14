@@ -1,11 +1,14 @@
 {
-  "boca": 0,
-  "brazo": 1,
-  "cabeza": 2,
-  "estomago": 3,
-  "hola": 4,
-  "mano": 5,
-  "nariz": 6,
-  "pecho": 7,
-  "pies": 8
+  "amigo": 0,
+  "boca": 1,
+  "brazo": 2,
+  "cabeza": 3,
+  "estomago": 4,
+  "gracias": 5,
+  "hola": 6,
+  "mano": 7,
+  "nariz": 8,
+  "ojos": 9,
+  "pecho": 10,
+  "pies": 11
 }

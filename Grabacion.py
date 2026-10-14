@@ -49,7 +49,7 @@ SEÑAS = [
     "cabeza",
     "cabello",
     "ojos",
-    "nar23iz",
+    "nariz",
     "oreja",
     "boca",
     "pecho",
