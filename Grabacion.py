@@ -59,6 +59,9 @@ SEÑAS = [
     "pierna",
     "pies",
     "amigo",
+    "animales",
+    "caballo",
+    "Gallina",
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"
@@ -182,7 +185,7 @@ def grabar_seña(indice_seña, cap, detectores, reloj):
         dibujar_overlay(frame, manos, ref)
 
         num_reps = contar_repeticiones_existentes(carpeta_seña)
-        cv2.putText(frame, f"Sena: {seña_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
+        cv2.putText(frame, f"Seña: {seña_actual} ({num_reps}/{REPETICIONES_OBJETIVO})",
                     (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         estado_ref = "sin referencia"
         if ref is not None:
