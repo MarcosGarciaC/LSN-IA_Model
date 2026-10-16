@@ -43,6 +43,7 @@ from caracteristicas import (
 SEÑAS = [
     "hola", "gracias", "por_favor", "adios", "buenos_dias",
     "J", "nada", "reposo",
+    #Partes del cuerpo
     "cuerpo",
     "hombre",
     "mujer",
@@ -58,10 +59,17 @@ SEÑAS = [
     "estomago",
     "pierna",
     "pies",
+    #Sustantivos
     "amigo",
+
+    #animales
     "animales",
     "caballo",
     "Gallina",
+    
+    #comidas
+    "arroz",
+    "banano"
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"

@@ -13,5 +13,18 @@
   "nariz": 11,
   "ojos": 12,
   "pecho": 13,
-  "pies": 14
+  "pies": 14,
+  "amigo": 0,
+  "arroz": 1,
+  "boca": 2,
+  "brazo": 3,
+  "cabeza": 4,
+  "estomago": 5,
+  "gracias": 6,
+  "hola": 7,
+  "mano": 8,
+  "nariz": 9,
+  "ojos": 10,
+  "pecho": 11,
+  "pies": 12
 }
