@@ -21,8 +21,13 @@
   "huevo": 19,
   "leche": 20,
   "mano": 21,
-  "nariz": 22,
-  "ojos": 23,
-  "pecho": 24,
-  "pies": 25
+  "manzana": 22,
+  "nariz": 23,
+  "ojos": 24,
+  "papas fritas": 25,
+  "pecho": 26,
+  "pies": 27,
+  "queso": 28,
+  "salsa de tomate": 29,
+  "sopa": 30
 }
