@@ -69,7 +69,23 @@ SEÑAS = [
     
     #comidas
     "arroz",
-    "banano"
+    "banano",
+    "café",
+    "carne",
+    "ensalada",
+    "frijoles",
+    "gaseosa",
+    "hamburguesa",
+    "helado",
+    "huevo",
+    "leche",
+    "manzana",
+    "papas fritas",
+    "pizza",
+    "queso",
+    "salsa de tomate",
+    "sandía",
+    "sopa"
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"
