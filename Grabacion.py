@@ -66,6 +66,12 @@ SEÑAS = [
     "animales",
     "caballo",
     "Gallina",
+    "Conejo",
+    "Gato",
+    "Perro",
+    "Torro",
+    "Tortuga",
+    "Culebra",
     
     #comidas
     "arroz",
