@@ -96,7 +96,6 @@ SEÑAS = [
     "sandía",
     "sopa",
     
-<<<<<<< Updated upstream
     #Colores
     "amarillo",
     "azul",
@@ -108,11 +107,11 @@ SEÑAS = [
     "rojo",
     "morado",
     "verde"
-=======
+
     #Verbos
     "Gritar",
     
->>>>>>> Stashed changes
+
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"
