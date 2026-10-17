@@ -91,7 +91,19 @@ SEÑAS = [
     "queso",
     "salsa de tomate",
     "sandía",
-    "sopa"
+    "sopa",
+    
+    #Colores
+    "amarillo",
+    "azul",
+    "blanco",
+    "café_(color)",
+    "gris",
+    "naranja",
+    "negro",
+    "rojo",
+    "morado",
+    "verde"
 ]
 
 CARPETA_DATASET = "dataset_trayectoria"
